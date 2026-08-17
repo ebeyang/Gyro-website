@@ -18,17 +18,17 @@
     --muted:#9fd6c2;
     --text:#eaffef;
   }
-
+ 
   html,body{height:100%;margin:0;background:linear-gradient(180deg,var(--bg),var(--bg2));color:var(--text);font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,Arial;box-sizing:border-box}
   *,*:before,*:after{box-sizing:inherit}
-
+ 
   .container{max-width:1150px;margin:16px auto;padding:16px}
   header{display:flex;gap:12px;align-items:center;margin-bottom:12px}
   .logo{width:56px;height:56px;border-radius:50%;overflow:hidden;border:1px solid rgba(255,255,255,0.03);display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,rgba(255,255,255,0.02),transparent)}
   .logo img{width:100%;height:100%;object-fit:cover}
   h1{margin:0;font-size:18px}
   .subtitle{color:var(--muted);font-size:12px;margin-top:6px}
-
+ 
   .layout{display:flex;gap:14px;align-items:flex-start}
   .left{width:200px;min-width:170px}
   .panel{background:linear-gradient(180deg,var(--panel),var(--panel2));padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,0.03)}
@@ -51,7 +51,7 @@
   .booking-cta:focus-visible{outline:3px solid #fff;outline-offset:3px}
   @keyframes ctaPulse{0%,100%{box-shadow:0 8px 24px rgba(52,201,135,0.28)}50%{box-shadow:0 8px 30px rgba(122,243,127,0.58)}}
   .weekdays{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;color:var(--muted);font-weight:700;font-size:11px;text-align:center;margin-bottom:6px}
-
+ 
   /* Calendar: fixed cell sizes and clipped content */
   .calendar-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
   .day{
@@ -66,7 +66,7 @@
   .day .tag{font-size:var(--day-small-size);color:var(--muted);margin-top:2px;white-space:nowrap}
   .day.past{opacity:0.45;cursor:not-allowed}
   .day.has-booking{box-shadow:0 6px 18px rgba(52,200,135,0.06);border:1px solid rgba(51,195,134,0.08)}
-
+ 
   .right{flex:1;min-width:480px}
   .week-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
   .week-title{font-weight:900;color:var(--accent);font-size:16px}
@@ -89,13 +89,13 @@
   .slot-btn.pending{background:linear-gradient(180deg,#2b4b3d,#0a2e26);color:var(--muted)}
   .slot-btn.paid{background:linear-gradient(180deg,#186a45,#0b3b2a);color:#fff;border:1px solid rgba(60,200,140,0.12)}
   .slot-sub{display:block;font-size:11px;color:var(--muted);margin-top:4px;white-space:normal;word-break:break-word}
-
+ 
   /* selected visual state for available slots */
   .slot-btn.selected{
     outline: 3px solid rgba(122,243,127,0.18);
     box-shadow: 0 6px 18px rgba(122,243,127,0.08);
   }
-
+ 
   /* Modal */
   .modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.6);z-index:999}
   .modal .box{background:linear-gradient(180deg,#07241f,#0a2f27);padding:14px;border-radius:10px;border:1px solid rgba(255,255,255,0.03);color:var(--text);max-width:520px;width:94%}
@@ -117,13 +117,13 @@
 <body>
   <div class="container">
     <header>
-      <div class="logo"><img src="gyro logo.jpg" alt="logo"></div>
+      <div class="logo"><img src="gyro_logo-removebg-preview.png" alt="logo"></div>
       <div>
         <h1>Gyro Pickleball</h1>
         <div class="subtitle">Come, join and put some spin on your game at GYRO!</div>
       </div>
     </header>
-
+ 
     <div class="layout">
       <div class="left">
         <div class="panel">
@@ -132,20 +132,20 @@
             <div id="monthLabel" style="font-weight:900;color:var(--accent)"></div>
             <button id="next" class="btn">&rarr;</button>
           </div>
-
+ 
           <div class="weekdays">
             <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
           </div>
-
+ 
           <div id="calendarGrid" class="calendar-grid"></div>
-
+ 
           <div class="rules">
             <div style="font-weight:800;margin-top:8px">Rules</div>
             <div class="small">• Pay & upload receipt to confirm booking. • Name required for booking purposes. • Cancellations are handled by the admin only.</div>
           </div>
         </div>
       </div>
-
+ 
       <div class="right">
         <div class="panel">
           <div class="week-top">
@@ -155,7 +155,7 @@
             </div>
             <div id="weekInfo" class="small">Select a date</div>
           </div>
-
+ 
           <div class="week-grid">
             <table id="scheduleTable" aria-label="Week schedule">
               <thead>
@@ -168,41 +168,69 @@
       </div>
     </div>
   </div>
-
+ 
   <div id="modal" class="modal"><div class="box" id="modalBox"></div></div>
-
+ 
 <script>
 /* ====== CLIENT CONFIG - your Apps Script Exec URL ====== */
 const GOOGLE_SCRIPT_URL = 'https://gyro-proxy.accanada.workers.dev/';
 const SHEET_SECRET = 'ASHTONGREVE53s@t';
 /* ===================================================== */
-
+ 
 (function(){
   const LOCAL_KEY = 'gyro_fixed_calendar_v1';
   const START_HOUR = 6;
   const END_HOUR = 24;
   const GCASH_NUMBER = '09217335413';
-
-  let bookings = loadBookings();
+ 
+  let bookings = loadBookings(); // local cache only, used as a fallback while the first live refresh loads
   let today = new Date(); today.setHours(0,0,0,0);
   let viewYear = today.getFullYear(), viewMonth = today.getMonth();
   let selectedDate = new Date(today);
-
+ 
   // selection state for available slots
   const selectedSlots = new Set();
-
+ 
   const calendarGrid = document.getElementById('calendarGrid');
   const monthLabel = document.getElementById('monthLabel');
   const prevBtn = document.getElementById('prev'), nextBtn = document.getElementById('next');
   const theadRow = document.getElementById('theadRow'), slotsBody = document.getElementById('slotsBody'), weekInfo = document.getElementById('weekInfo');
   const modal = document.getElementById('modal'), modalBox = document.getElementById('modalBox');
   const bookSelectedBtn = document.getElementById('bookSelectedBtn');
-
+ 
   function loadBookings(){ try{ return JSON.parse(localStorage.getItem(LOCAL_KEY)||'{}'); }catch(e){return{}} }
   function saveBookings(){ try{ localStorage.setItem(LOCAL_KEY, JSON.stringify(bookings)); }catch(e){console.warn(e);} }
-
+ 
+  // THE FIX: pull the full booking list from the sheet (via the Worker) so
+  // every device sees what every other device has booked, instead of only
+  // trusting this browser's own localStorage.
+  async function refreshBookings(){
+    try {
+      const res = await fetch(GOOGLE_SCRIPT_URL + '?action=list');
+      const json = await res.json();
+      if (json.error) { console.warn('refreshBookings error:', json.error); return; }
+      const next = {};
+      (json.bookings || []).forEach(b => {
+        const status = String(b.status || '').toLowerCase();
+        if (status === 'cancelled') return; // cancelled slots are free again
+        next[b.slotKey] = {
+          status: b.status,
+          name: b.name,
+          paymentRef: b.paymentRef,
+          receipt: b.receiptUrl || null
+        };
+      });
+      bookings = next;
+      saveBookings(); // keep a local cache too, purely for instant reload before the next refresh
+      renderCalendar();
+      renderWeek();
+    } catch (e) {
+      console.warn('refreshBookings failed, showing last known state:', e);
+    }
+  }
+ 
   function fmtY(d){ return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); }
-
+ 
   // slotKey: map (date at 00:00, h) to a key. handles h >= 24 by rolling the date forward.
   function slotKey(date, h) {
     const dt = new Date(date);
@@ -210,10 +238,10 @@ const SHEET_SECRET = 'ASHTONGREVE53s@t';
     const hour = String(((h % 24) + 24) % 24).padStart(2, '0'); // normalize to 00-23
     return `${fmtY(dt)}_${hour}`;
   }
-
+ 
   function startOfWeek(d){ const dd=new Date(d); const day=dd.getDay(); dd.setDate(dd.getDate()-day); dd.setHours(0,0,0,0); return dd; }
   function isWeekend(d){ return d.getDay()===0 || d.getDay()===6; }
-
+ 
   // formatHour: non-military (12-hour) format without ":00"
   function formatHour(h){
     const hh = ((h%24)+24)%24;
@@ -222,9 +250,9 @@ const SHEET_SECRET = 'ASHTONGREVE53s@t';
     if (hour12 === 0) hour12 = 12;
     return `${hour12} ${ampm}`;
   }
-
+ 
   function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-
+ 
   function updateBookSelectedButton(){
     const n = selectedSlots.size;
     if(n > 0){
@@ -235,7 +263,7 @@ const SHEET_SECRET = 'ASHTONGREVE53s@t';
       bookSelectedBtn.textContent = 'Proceed to Payment →)';
     }
   }
-
+ 
   function toggleSelection(key, btn){
     if(selectedSlots.has(key)){
       selectedSlots.delete(key);
@@ -246,22 +274,22 @@ const SHEET_SECRET = 'ASHTONGREVE53s@t';
     }
     updateBookSelectedButton();
   }
-
+ 
   // when user clicks Book Selected, open confirm for ALL selected slots
   bookSelectedBtn.addEventListener('click', ()=> {
     if (selectedSlots.size === 0) return;
     const keys = Array.from(selectedSlots).sort();
     openConfirmPay(keys);
   });
-
+ 
   function keyToDateHour(key){
     const [dateStr, hourStr] = key.split('_');
     const [y,m,d] = dateStr.split('-').map(n => parseInt(n,10));
     return { dateObj: new Date(y, m-1, d), hour: parseInt(hourStr, 10) };
   }
-
+ 
   function slotPrice(dateObj){ return isWeekend(dateObj) ? 300 : 250; }
-
+ 
   function setView(y,m){ viewYear=y; viewMonth=m; monthLabel.textContent = new Date(y,m,1).toLocaleString(undefined,{month:'long',year:'numeric'}); renderCalendar(); }
   function renderCalendar(){
     calendarGrid.innerHTML = '';
@@ -283,7 +311,7 @@ const SHEET_SECRET = 'ASHTONGREVE53s@t';
       calendarGrid.appendChild(cell);
     }
   }
-
+ 
   function renderWeek(){
     const start = startOfWeek(selectedDate);
     // headers
@@ -294,14 +322,14 @@ const SHEET_SECRET = 'ASHTONGREVE53s@t';
       const th = document.createElement('th'); th.className='daycol'; th.textContent = d.toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'}); theadRow.appendChild(th);
     }
     weekInfo.textContent = `Week of ${start.toLocaleDateString()}`;
-
+ 
     // rows
     slotsBody.innerHTML = '';
     const now = new Date();
     for(let h=START_HOUR; h<=END_HOUR; h++){
       const tr = document.createElement('tr');
       const th = document.createElement('th'); th.className='timecol'; th.textContent = `${formatHour(h)} - ${formatHour(h+1)}`; tr.appendChild(th);
-
+ 
       for(let i=0;i<7;i++){
         const date = days[i];
         const key = slotKey(date,h);
@@ -312,7 +340,7 @@ const SHEET_SECRET = 'ASHTONGREVE53s@t';
         const btn = document.createElement('button'); btn.className='slot-btn';
         const slotDateTime = new Date(date); slotDateTime.setHours(h,0,0,0);
         const isPast = slotDateTime.getTime() < now.getTime();
-
+ 
         if(b){
           if(b.status === 'paid'){ btn.classList.add('paid'); btn.textContent = 'Booked'; }
           else { btn.classList.add('pending'); btn.textContent = 'Pending'; }
@@ -325,24 +353,24 @@ const SHEET_SECRET = 'ASHTONGREVE53s@t';
             if(selectedSlots.has(key)) btn.classList.add('selected');
           }
         }
-
+ 
         btn.addEventListener('click', ()=> {
           if(btn.classList.contains('paid') || btn.classList.contains('pending')){ openBookingDetails(key,b); return; }
           if(btn.classList.contains('unavailable')) return;
           // toggle selection for available slots
           toggleSelection(key, btn);
         });
-
+ 
         td.appendChild(btn); tr.appendChild(td);
       }
       slotsBody.appendChild(tr);
     }
   }
-
+ 
   // booking flows
   async function openBookingDetails(key, booking){
     showModal(`<h3>Booking</h3><div class="small">Checking latest status…</div>`);
-
+ 
     // check the sheet for the latest status in case the admin cancelled it there
     let liveStatus = booking && booking.status ? booking.status : null;
     try {
@@ -351,7 +379,7 @@ const SHEET_SECRET = 'ASHTONGREVE53s@t';
       const json = await r.json();
       if (json && json.status) liveStatus = json.status;
     } catch (e) { /* fall back to the locally cached status if the check fails */ }
-
+ 
     if (String(liveStatus||'').toLowerCase() === 'cancelled') {
       delete bookings[key];
       saveBookings();
@@ -363,7 +391,7 @@ const SHEET_SECRET = 'ASHTONGREVE53s@t';
       document.getElementById('closeBtn').onclick = ()=>{ closeModal(); renderCalendar(); renderWeek(); };
       return;
     }
-
+ 
     const status = liveStatus || '—';
     const ref = booking && booking.paymentRef ? escapeHtml(booking.paymentRef) : '—';
     const receiptHtml = booking && booking.receipt ? `<div style="margin-top:8px"><img src="${booking.receipt}" style="max-width:100%;border-radius:8px"></div>` : '';
@@ -382,7 +410,7 @@ const SHEET_SECRET = 'ASHTONGREVE53s@t';
     document.getElementById('closeBtn').onclick = closeModal;
     if(document.getElementById('uploadBtn')) document.getElementById('uploadBtn').onclick = ()=> openReceiptUploader(key);
   }
-
+ 
   // keys: array of one or more slotKeys selected for booking. Price scales with
   // how many hours/slots are booked — each slot is priced on its own date (weekday/weekend)
   // and the total is the sum, so booking 2+ hours costs proportionally more.
@@ -403,7 +431,7 @@ const SHEET_SECRET = 'ASHTONGREVE53s@t';
       <div class="actions"><button id="cancelBtn" class="btn">Cancel</button><button id="confirmBtn" class="confirm">Confirm & Pay</button></div>
     `);
     document.getElementById('cancelBtn').onclick = closeModal;
-
+ 
     // Confirm handler: POST create booking to Apps Script (status=pending) for every
     // selected slot under one shared payment reference, then open payment screen
     document.getElementById('confirmBtn').onclick = async ()=> {
@@ -434,6 +462,7 @@ const SHEET_SECRET = 'ASHTONGREVE53s@t';
         updateBookSelectedButton();
         // refresh and show payment modal
         closeModal(); renderCalendar(); renderWeek();
+        refreshBookings(); // pull the confirmed shared state right away instead of waiting for the next poll
         openPaymentScreen(items.map(it => it.key), total, paymentRef);
       } catch (err) {
         alert('Could not create booking: ' + (err.message || err));
@@ -441,9 +470,9 @@ const SHEET_SECRET = 'ASHTONGREVE53s@t';
       }
     };
   }
-
+ 
   function openPaymentScreen(keys, price, paymentRef){
-
+ 
     const payload = `Pay PHP ${price} to ${GCASH_NUMBER} Ref:${paymentRef}`;
     const qrUrl = `qrCode.jpg?data=${encodeURIComponent(payload)}`;
     showModal(`
@@ -455,7 +484,7 @@ const SHEET_SECRET = 'ASHTONGREVE53s@t';
       <div class="actions"><button id="closeBtn" class="btn">Close</button><button id="uploadBtn" class="confirm">Upload receipt & Confirm</button></div>
     `);
     document.getElementById('closeBtn').onclick = closeModal;
-
+ 
     document.getElementById('uploadBtn').onclick = async ()=>{
       const f = document.getElementById('receiptFile').files[0];
       if(!f){ alert('Choose receipt image'); return; }
@@ -503,7 +532,7 @@ const SHEET_SECRET = 'ASHTONGREVE53s@t';
       }
     };
   }
-
+ 
   function openReceiptUploader(key){
     showModal(`
       <h3>Upload Receipt</h3>
@@ -549,12 +578,12 @@ const SHEET_SECRET = 'ASHTONGREVE53s@t';
       }
     };
   }
-
+ 
   // small utils
   function showModal(html){ modalBox.innerHTML = html; modal.style.display = 'flex'; }
   function closeModal(){ modal.style.display = 'none'; }
   function fileToDataURL(file){ return new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(r.result); r.onerror=rej; r.readAsDataURL(file); }); }
-
+ 
   function pollBookingStatus(slotKey, onChange, intervalMs = 5000, timeoutMs = 5*60*1000){
     const start = Date.now();
     async function check(){
@@ -574,7 +603,7 @@ const SHEET_SECRET = 'ASHTONGREVE53s@t';
     }
     check();
   }
-
+ 
   // periodically re-check locally tracked bookings against the sheet so a booking
   // the admin cancels there frees the slot up here even without the client polling
   async function syncBookingStatuses(){
@@ -592,29 +621,29 @@ const SHEET_SECRET = 'ASHTONGREVE53s@t';
     }
     if(changed){ saveBookings(); renderCalendar(); renderWeek(); }
   }
-
+ 
   // init + events
   prevBtn.addEventListener('click', ()=>{ let m=viewMonth-1; let y=viewYear; if(m<0){m=11;y--;} setView(y,m); renderWeek(); });
   nextBtn.addEventListener('click', ()=>{ let m=viewMonth+1; let y=viewYear; if(m>11){m=0;y++;} setView(y,m); renderWeek(); });
-
+ 
   function renderWeekInner(){
     // compatibility alias kept for older code paths
     renderWeek();
   }
-
+ 
   function renderWeekInner(){ renderWeek(); } // alias kept
-
+ 
   function setView(y,m){ viewYear=y; viewMonth=m; monthLabel.textContent = new Date(y,m,1).toLocaleDateString(undefined,{month:'long',year:'numeric'}); renderCalendar(); }
-
+ 
   // start
   setView(viewYear, viewMonth);
   renderWeek();
-  syncBookingStatuses();
-  setInterval(syncBookingStatuses, 30000);
-
+  refreshBookings();                 // pull the real, shared state immediately
+  setInterval(refreshBookings, 6000); // then keep polling every 6s so all devices stay in sync
+ 
   // expose bookings for debug
   window.__bookings = bookings;
-
+ 
 })();
 </script>
 </body>
